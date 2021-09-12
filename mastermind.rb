@@ -8,7 +8,7 @@ require 'pry-byebug'
 #A PATTERN OF 4 RANDOM COLORS IS CHOSEN
 
 class GAME
-    attr_reader :board, :code_row
+    attr_reader :board, :code_row, :main_colors
     def initialize
         @main_colors = ["red","yellow","blue","purple","pink","teal"]
         @secondary_colors = ["black","white"]
@@ -25,31 +25,30 @@ private
         @board = Array.new(12) { Array.new(2) { rows() } }
     end
 #selects 4 random colors to stand for the code
-public
 def code_maker_ai
-    ai_colors = @main_colors
+    ai_colors = []
+     ai_colors += @main_colors
     @code_row = []
     4.times do
-        temp_color = ai_colors.sample(random: Random.new(1))
+        temp_color = ai_colors.sample
         ai_colors.delete(temp_color)
         @code_row << temp_color
     end
 end
 
 public
-    #*I DONT EVEN KNOW WHERE TO START
-    #*Take user input as an array
-    #! DOES NOT WORK YET
+
     def compare_guess(player_input)
         matches = []
-        temp_row = Array.new(){@code_row}
+        temp_row = [] 
+        temp_row += @code_row
         player_input.each do |item|
             if temp_row.include?(item)
                 matches << @secondary_colors[1]
                 temp_row.delete_at(temp_row.index(item))
             end
         end
-
+        matches
         @code_row.each_with_index do |item,index|
             if @code_row[index] == player_input[index]
                 matches.shift
