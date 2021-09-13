@@ -90,32 +90,53 @@ public
     end
 #updates the code with the players input and appropriate results
     def update_board(turn)
-        @board[0][0]=@matches
-        @board[0][1]=@player_input
+        @board[turn][0]=@matches
+        @board[turn][1]=@player_input
     end
 #Checks for whether the bot or the player has guessed the secret code
     def check_for_win_condition
         @matches.all?("black")
     end
 #DISPLAYS THE GAME BOARD
-    def display_board
-        @board
+    def display_board(turn)
+        temp_index = 0
+        turn+=1
+        turn.times do
+            puts "#{@board[temp_index][0]} #{@board[temp_index][1]} #{@board[temp_index][2]}"
+            temp_index+=1
+        end
     end
 #This method plays a single (1) turn of the game
     def play_turn(turn)
         get_player_input()
         compare_guesses()
         update_board(turn)
-        display_board()
+        system "clear"
+        display_board(turn)
     end
  
 end
 
 game = MASTERMIND.new()
-binding.pry
+#binding.pry
 #*MAKE A LOOP THAT PLAYS THE GAME 12 TIMES
-# turns = 1
-# while turns<=12
-# game.game(turns)
-# end
-p "Something"
+turn = 0
+while turn<=12
+    puts game.code_row
+    if (turn == 12)
+        system "clear"
+        temp_index = turn-1
+        game.display_board(temp_index)
+        puts "DEFEAT DEFEAT LEMONS I EAT"
+        break
+    end
+    game.play_turn(turn)
+    turn += 1
+    if game.check_for_win_condition == true
+        system "clear"
+        temp_index = turn-1
+        game.display_board(temp_index)
+        puts "WINNER WINNER CHICKEN DINNER"
+        break
+    end
+end
