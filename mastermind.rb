@@ -8,7 +8,8 @@ class MASTERMIND
         create_board()
         if player_role == "code maker"
             get_player_input()
-            @code_row = Array.new(1) {@code_breaker_input}.flatten
+            @secret_code_row = Array.new(1) {@code_breaker_input}.flatten
+            @code_breaker_input = ''
         else
             secret_code()
         end
@@ -28,16 +29,28 @@ public
 #selects 4 random colors to stand for the code
     def secret_code
         ai_colors = Array.new(1) {@MAIN_COLORS}.flatten
-        @code_row = []
+        @secret_code_row = []
         4.times do
             temp_color = ai_colors.sample
             ai_colors.delete(temp_color)
-            @code_row << temp_color
+            @secret_code_row << temp_color
         end
     end
 #! WRITE THIS LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def get_bot_input
+    def get_bot_input(turn)
+        temp_color = Array.new(1) {@MAIN_COLORS}
+        temp_index = turn - 1
+        if turn == 1 
+            temp_input = ["red","red","yellow","yellow"]
+        else 
+            previous_guesses = @board[temp_index][1]
+            previous_results = @board[temp_index]
+        end
+        store_bot_input(temp_input)
+    end
 
+    def store_bot_input(temp_input)
+        @code_breaker_input = temp_input
     end
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #this calls the request_player_input to take the player input, then validates it and stores it
@@ -69,15 +82,16 @@ public
 #stores player input
     def store_player_input(temp_input)
         @code_breaker_input << @available_colors[@available_colors.index(temp_input)]
-        @available_colors.delete(temp_input)
+        #@available_colors.delete(temp_input)
     end
 #Checks the player input and compares it with the secret code,
     def correct_colors
-        @matches = []
+        @matches = Array.new(4){"O"}
         temp_row = [] 
-        temp_row += @code_row
+        temp_row += @secret_code_row
         @code_breaker_input.each do |item|
             if temp_row.include?(item)
+                @matches.shift
                 @matches << "white"
                 temp_row.delete_at(temp_row.index(item))
             end
@@ -86,8 +100,8 @@ public
 #checks for whether any of the colors in player_input match the colors and positions
 #in the secret code
     def correct_positions
-        @code_row.each_with_index do |item,index|
-            if @code_row[index] == @code_breaker_input[index]
+        @secret_code_row.each_with_index do |item,index|
+            if @secret_code_row[index] == @code_breaker_input[index]
                 @matches.shift
                 @matches << "black"
             end
@@ -98,6 +112,11 @@ public
         correct_colors()
         correct_positions()
         @matches
+    end
+    def get_matches
+        #*WRITE THIS TO COMPARE PLAYER/BOT GUESSES WITH THE ACTUAL CODE
+        #*IF COMPARISON WAS SUCCESSFUL REPLACE IT WITH "O"
+        
     end
 #updates the code with the players input and appropriate results
     def update_board(turn)
@@ -128,7 +147,7 @@ public
     
 #this method plays a single (1) turn of the game if the player is the code maker
     def bot_turn(turn)
-        get_bot_input()
+        get_bot_input(turn)
         compare_guesses()
         update_board(turn)
         display_board(turn)
@@ -138,26 +157,29 @@ end
 #binding.pry
 puts "Do you wish to be the code breaker or the code maker?"
 player_role = gets.chomp
-game = MASTERMIND.new()
+game = MASTERMIND.new(player_role)
 turn = 0
 while turn<=12
     puts game.code_row
-    if (turn == 12)
-        system "clear"
-        temp_index = turn-1
-        game.display_board(temp_index)
-        puts "DEFEAT DEFEAT LEMONS I EAT"
-        break
-    end
     if player_role == "code breaker"
-    game.player_turn(turn)
-    turn += 1
+        game.player_turn(turn)
+        turn += 1
+    elsif player_role == "code maker"
+        game.bot_turn(turn)
+        turn+=1
     end
     if game.check_for_win_condition == true
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
         puts "WINNER WINNER CHICKEN DINNER"
+        break
+    end
+    if (turn == 12)
+        system "clear"
+        temp_index = turn-1
+        game.display_board(temp_index)
+        puts "DEFEAT DEFEAT LEMONS I EAT"
         break
     end
 end
