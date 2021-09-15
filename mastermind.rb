@@ -1,7 +1,7 @@
 require 'pry-byebug'
 
 class MASTERMIND
-    attr_reader :board, :code_row, :MAIN_COLORS
+    attr_reader :board, :secret_code_row, :MAIN_COLORS
 #creates the game board with some constants
     def initialize(player_role = "code breaker")
         @MAIN_COLORS = ["red","yellow","blue","purple","pink","teal"]
@@ -85,12 +85,11 @@ public
         #@available_colors.delete(temp_input)
     end
 #Checks the player input and compares it with the secret code,
-    def correct_colors
-        @matches = Array.new(4){"O"}
+    def correct_colors(temp_input)
         temp_row = [] 
         temp_row += @secret_code_row
-        @code_breaker_input.each do |item|
-            if temp_row.include?(item)
+        temp_row.each do |item|
+            if temp_input.include?(item)
                 @matches.shift
                 @matches << "white"
                 temp_row.delete_at(temp_row.index(item))
@@ -100,23 +99,22 @@ public
 #checks for whether any of the colors in player_input match the colors and positions
 #in the secret code
     def correct_positions
+        @matches = Array.new(4){"O"}
+        temp_input = Array.new(1){@code_breaker_input}.flatten
         @secret_code_row.each_with_index do |item,index|
-            if @secret_code_row[index] == @code_breaker_input[index]
+            if @secret_code_row[index] == temp_input[index]
+                temp_input[index] == "O"
                 @matches.shift
                 @matches << "black"
             end
         end
+        temp_input
     end
 #compares the players input with the secret code
     def compare_guesses
-        correct_colors()
-        correct_positions()
+        temp_input = correct_positions()
+        correct_colors(temp_input)
         @matches
-    end
-    def get_matches
-        #*WRITE THIS TO COMPARE PLAYER/BOT GUESSES WITH THE ACTUAL CODE
-        #*IF COMPARISON WAS SUCCESSFUL REPLACE IT WITH "O"
-        
     end
 #updates the code with the players input and appropriate results
     def update_board(turn)
@@ -160,8 +158,9 @@ player_role = gets.chomp
 game = MASTERMIND.new(player_role)
 turn = 0
 while turn<=12
-    puts game.code_row
+    puts game.secret_code_row
     if player_role == "code breaker"
+
         game.player_turn(turn)
         turn += 1
     elsif player_role == "code maker"
