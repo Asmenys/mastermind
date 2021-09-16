@@ -4,11 +4,12 @@ class MASTERMIND
     attr_reader :board, :secret_code_row, :MAIN_COLORS
 #creates the game board with some constants
     def initialize(player_role = "code breaker")
-        @MAIN_COLORS = ["red","yellow","blue","purple","pink","teal"]
+        @MAIN_CHOICES = [1,2,3,4,5,6]
         create_board()
         if player_role == "code maker"
+            @ALL_POSSIBLE_CHOICES = @MAIN_CHOICES.repeated_permutation(4).to_a
             get_player_input()
-            @bot_colors = Array.new(1) {@MAIN_COLORS}.flatten
+            @bot_colors = Array.new(1) {@MAIN_CHOICES}.flatten
             @secret_code_row = Array.new(1) {@code_breaker_input}.flatten
             @code_breaker_input = ''
         else
@@ -31,7 +32,7 @@ public
     def secret_code
         @secret_code_row = []
         4.times do
-            ai_colors = Array.new(1) {@MAIN_COLORS}.flatten
+            ai_colors = Array.new(1) {@MAIN_CHOICES}.flatten
             temp_color = ai_colors.sample
             ai_colors.delete(temp_color)
             @secret_code_row << temp_color
@@ -39,24 +40,51 @@ public
     end
 #! DOES NOT WORK YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     def get_bot_input(turn)
+        if turn == 0
+           temp_input = [1,1,2,2] 
+        end
+        if turn == 1
+            reduce_possible_choices_first_turn()
+        end
 
+
+
+
+
+
+    end
+#*CREATE AN ARRAY OF POSSIBLE COLORS AND POSSIBLE CHOICES
+#* FOR FIRST TURN PICK TWO RANDOM COLORS
+#* CALCULATE THE RESULT SUM
+#* IF THE RESULT SUM IS GREATER THAN 3
+#* FILTER THE POSSIBLE CHOICES FOR OPTIONS THAT ONLY INCLUDE BOTH OF THESE COLORS
+        binding.pry
         store_bot_input(temp_input)
     end
-
-        def bot_guess_options(turn)
-        temp_color = Array.new(1) {@MAIN_COLORS}
-        temp_index = turn - 1
-        previous_turn_results = previous_guess_results(turn)
-        previous_turn_guesses = @board[turn-1][1]
-        if turn == 1
-            temp_input = ["red","red","yellow","yellow"]
+    def reduce_possible_choices_first_turn(previous_result_sum,previous_guesses)
+        if previous_result_sum > 3
+            previous_guesses.each do |item|
+            @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter {|guess| guess.include?(item)}
+            end
+        end
+        if previous_result_sum == 0
+            previous_guesses.uniq!
+            @MAIN_CHOICES.delete(previous_guesses[0])
+            @MAIN_CHOICES.delete(previous_guesses[1])
+            @MAIN_CHOICES.each do |choice|
+                @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter{|guess| guess.include?(choice)}
+            end
         end
     end
-    def previous_turn_results(turn)
-        temp_index = turn - 1
-        previous_results =[@board[temp_index][0].count("black"),@board[temp_index][0].count("white")]
-        #previous reuslts, previous guesses
+    # def reduce_possible_choices(previous_result_sum,turn)
+        
+    # end
+
+    def get_previous_results(turn)
+        temp_turn = turn - 1
+        previous_results = [@board[temp_turn][0].count("black"),@board[temp_turn][0].count("white")]
     end
+#!DOES NOT WORK
 #Stores the bot input
     def store_bot_input(temp_input)
         @code_breaker_input = temp_input
@@ -64,21 +92,19 @@ public
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #this calls the request_player_input to take the player input, then validates it and stores it
     def get_player_input
-
-        @available_colors = Array.new(1) {@MAIN_COLORS}.flatten
             temp_input = request_player_input()
             temp_input = validate_player_input(temp_input)
             store_player_input(temp_input)
     end
 #requests player for input
-    def request_player_input(message = "Choose from one of the following colors")
+    def request_player_input(message = "Please enter an array of numbers 1-6 each separated by \" \"")
         puts "#{message}"
-        p @available_colors
         temp_input = gets.chomp
-        temp_input.split 
+        temp_input = temp_input.split
+        temp_input = temp_input.map {|item| item.to_i}
     end
 #validates the player input, if input is invalid prompts the user to input again
-    def validate_player_input(temp_input,comparison_array = @available_colors)
+    def validate_player_input(temp_input,comparison_array = @MAIN_CHOICES)
         validation_results = []
         temp_input.each do |input|
             validation_results << comparison_array.include?(input)
@@ -96,12 +122,14 @@ public
         #@available_colors.delete(temp_input)
     end
 #Checks the player input and compares it with the secret code,
-    def correct_colors(temp_row)
-        @code_breaker_input.each do |item|
-            if temp_row.include?(item)
+    def correct_colors(temp_array)
+        temp_player_input = temp_array[1]
+        temp_secret_code = temp_array[0]
+        temp_player_input.each do |item|
+            if temp_secret_code.include?(item)
                 @matches.shift
                 @matches << "white"
-                temp_row[temp_row.index(item)] = "O"
+                temp_secret_code[temp_secret_code.index(item)] = "O"
             end
         end
     end
@@ -109,16 +137,18 @@ public
 #in the secret code
     def correct_positions
         @matches = Array.new(4){"O"}
-        temp_row = Array.new(1){@secret_code_row}.flatten
-        temp_row.each_with_index do |item,index|
-            if temp_row[index] == @code_breaker_input[index]
-                temp_row[index] = "O"
+        temp_player_input = Array.new(1){@code_breaker_input}.flatten
+        temp_secret_code = Array.new(1){@secret_code_row}.flatten
+        temp_secret_code.each_with_index do |item,index|
+            if temp_secret_code[index] == temp_player_input[index]
+                temp_player_input[index] = "X"
+                temp_secret_code[index] = "O"
                 @matches.shift
                 @matches << "black"
+                #binding.pry
             end
         end
-        puts "#{temp_row}"
-        temp_row
+        temp_array = [temp_secret_code, temp_player_input]
     end
 #compares the players input with the secret code
     def compare_guesses
