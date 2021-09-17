@@ -5,6 +5,8 @@ class MASTERMIND
 #creates the game board with some constants
     def initialize(player_role = "code breaker")
         @MAIN_CHOICES = [1,2,3,4,5,6]
+        @POSSIBLE_OPTIONS = Array.new(1) {@MAIN_CHOICES}.flatten
+        @TRUE_OPTIONS = Array.new()
         create_board()
         if player_role == "code maker"
             @ALL_POSSIBLE_CHOICES = @MAIN_CHOICES.repeated_permutation(4).to_a
@@ -40,56 +42,103 @@ public
     end
 #! DOES NOT WORK YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     def get_bot_input(turn)
-        if turn == 0
-           temp_input = [1,1,2,2] 
+        current_result_sum = get_current_results(turn)
+        current_result_sum = current_result_sum[0]+current_result_sum[1]
+        previous_result_sum = get_current_results(turn-1)
+        previous_result_sum = previous_result_sum[0]+previous_result_sum[1]
+        case turn
+            when 0
+            temp_input = [1,1,1,1] 
+            when 1
+                if current_result_sum == 0
+                    reduce_possible_choices(turn)
+                    temp_input = [2,2,2,2]
+                else
+                    current_result_sum.times do
+                        @TRUE_OPTIONS << turn
+                    end
+                    @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| @TRUE_OPTIONS.count(turn) == guess.count(turn)}
+                    temp_input=get_temp_input(turn)    
+                end
+            when 2
+                if current_result_sum == 0
+                    reduce_possible_choices(turn)
+                    temp_input = [3,3,3,3]
+                else
+                    current_result_sum.times do
+                        @TRUE_OPTIONS << 2
+                    end
+                    @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| @TRUE_OPTIONS.count(2) == guess.count(2)}
+                    temp_input=get_temp_input(turn)
+                    binding.pry
+                end
+            # when 3
+            #     @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| }
         end
-        if turn == 1
-            reduce_possible_choices_first_turn()
-        end
-
-
-
-
-
-
+        store_bot_input(temp_input)
     end
-#*CREATE AN ARRAY OF POSSIBLE COLORS AND POSSIBLE CHOICES
+    def get_temp_input(turn)
+        temp_input = []
+        temp_input << @TRUE_OPTIONS
+        temp_input = temp_input.flatten
+        temp_index = 4 - temp_input.length
+        temp_index.times do
+            temp_input << turn
+        end
+        temp_input
+    end
+
+    #*CREATE AN ARRAY OF POSSIBLE COLORS AND POSSIBLE CHOICES
 #* FOR FIRST TURN PICK TWO RANDOM COLORS
 #* CALCULATE THE RESULT SUM
 #* IF THE RESULT SUM IS GREATER THAN 3
 #* FILTER THE POSSIBLE CHOICES FOR OPTIONS THAT ONLY INCLUDE BOTH OF THESE COLORS
-        binding.pry
-        store_bot_input(temp_input)
-    end
-    def reduce_possible_choices_first_turn(previous_result_sum,previous_guesses)
-        if previous_result_sum > 3
-            previous_guesses.each do |item|
-            @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter {|guess| guess.include?(item)}
-            end
-        end
-        if previous_result_sum == 0
-            previous_guesses.uniq!
-            @MAIN_CHOICES.delete(previous_guesses[0])
-            @MAIN_CHOICES.delete(previous_guesses[1])
-            @MAIN_CHOICES.each do |choice|
-                @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter{|guess| guess.include?(choice)}
-            end
-        end
-    end
-    # def reduce_possible_choices(previous_result_sum,turn)
         
-    # end
+    def reduce_possible_choices(turn)
+        current_result_sum = get_current_results(turn)
+        current_result_sum = current_result_sum[0]+current_result_sum[1]
+        result_changes = compare_result_changes(turn)
+        current_guesses = Array.new(1) {@board[turn-1][1]}.flatten
+        previous_guesses = Array.new(1) {@board[turn-2][1]}.flatten
 
-    def get_previous_results(turn)
-        temp_turn = turn - 1
-        previous_results = [@board[temp_turn][0].count("black"),@board[temp_turn][0].count("white")]
+        if current_result_sum == 0
+            current_guesses.uniq!
+            current_guesses.each do |choice|
+                @POSSIBLE_OPTIONS.delete(choice)
+                @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter{|guess| guess.include?(choice)}
+            end
+        end 
     end
-#!DOES NOT WORK
+
+    
+    # if current_result_sum == 4
+    #     previous_guesses.each do |item|
+    #     @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter {|guess| guess.include?(item)}
+    #     end
+    # end
+    # if current_result_sum == 0
+    #     previous_guesses.uniq!
+    #     previous_guesses.each do |choice|
+    #         @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter{|guess| guess.include?(choice)}
+    #     end
+    # end
+    
+
+    def compare_result_changes(turn)
+        current_results = get_current_results(turn)
+        previous_results = get_current_results(turn-1)
+        result_changes = (current_results - previous_results)
+       # binding.pry
+    end
+
+    def get_current_results(turn)
+        temp_turn = turn - 1
+        current_results = [@board[temp_turn][0].count("black"),@board[temp_turn][0].count("white")]
+    end
 #Stores the bot input
     def store_bot_input(temp_input)
         @code_breaker_input = temp_input
     end
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #this calls the request_player_input to take the player input, then validates it and stores it
     def get_player_input
             temp_input = request_player_input()
@@ -145,7 +194,7 @@ public
                 temp_secret_code[index] = "O"
                 @matches.shift
                 @matches << "black"
-                #binding.pry
+               # binding.pry
             end
         end
         temp_array = [temp_secret_code, temp_player_input]
@@ -162,8 +211,10 @@ public
         @board[turn][1]=@code_breaker_input
     end
 #Checks for whether the bot or the player has guessed the secret code
-    def check_for_win_condition
-        @matches.all?("black")
+    def check_for_win_condition(turn)
+       # binding.pry
+        @board[turn-1][0].all?("black")
+        #binding.pry
     end
 #DISPLAYS THE GAME BOARD
     def display_board(turn)
@@ -198,16 +249,15 @@ player_role = gets.chomp
 game = MASTERMIND.new(player_role)
 turn = 0
 while turn<=6
-    puts game.secret_code_row
     if player_role == "code breaker"
-
+        p game.secret_code_row
         game.player_turn(turn)
         turn += 1
     elsif player_role == "code maker"
         game.bot_turn(turn)
         turn+=1
     end
-    if game.check_for_win_condition == true
+    if game.check_for_win_condition(turn) == true
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
