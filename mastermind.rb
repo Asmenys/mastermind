@@ -57,6 +57,7 @@ public
                     temp_input = Array.new(4){temp_turn}
                     @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 else
+                    filter_whites(turn)
                     current_result_sum.times do
                         @TRUE_OPTIONS << turn
                     end
@@ -64,28 +65,17 @@ public
                     temp_input=get_temp_input(turn)    
                     @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 end
-            when 2
+            when 2...6
                 if current_result_sum == 0
                     reduce_possible_choices(turn)
                     temp_input = Array.new(4){temp_turn}
                     @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 else
+                    filter_whites(turn)
                     delta_result_sum = current_result_sum - previous_result_sum
                     temp_input = case_temp_input(turn, delta_result_sum)
                 end
-            when 3
-                delta_result_sum = current_result_sum - previous_result_sum
-                temp_input = case_temp_input(turn, delta_result_sum)
-            when 4
-                delta_result_sum = current_result_sum - previous_result_sum
-                temp_input = case_temp_input(turn, delta_result_sum)
-            when 5
-                delta_result_sum = current_result_sum - previous_result_sum
-                temp_input = case_temp_input(turn, delta_result_sum)
-            when 6
-                delta_result_sum = current_result_sum - previous_result_sum
-                temp_input = case_temp_input(turn, delta_result_sum)
-            when 7...12
+            when 6...12
                 #binding.pry
                 temp_input = @ALL_POSSIBLE_CHOICES.sample
                 @ALL_POSSIBLE_CHOICES.delete(temp_input)
@@ -100,6 +90,15 @@ public
         temp_input=get_temp_input(turn)
         @ALL_POSSIBLE_CHOICES.delete(temp_input)
         temp_input
+    end
+    def filter_whites(turn)
+        previous_input = @board[turn-1][1]
+        current_results = get_current_results(turn)
+        if current_results[0]==0
+            previous_input.each_with_index do |item,index|
+                @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter{|choice| choice[index] == item}
+            end
+        end
     end
 
     def get_temp_input(turn)
@@ -135,20 +134,6 @@ public
             end
         end 
     end
-
-    
-    # if current_result_sum == 4
-    #     previous_guesses.each do |item|
-    #     @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES - @ALL_POSSIBLE_CHOICES.filter {|guess| guess.include?(item)}
-    #     end
-    # end
-    # if current_result_sum == 0
-    #     previous_guesses.uniq!
-    #     previous_guesses.each do |choice|
-    #         @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter{|guess| guess.include?(choice)}
-    #     end
-    # end
-    
 
     def compare_result_changes(turn)
         current_results = get_current_results(turn)
