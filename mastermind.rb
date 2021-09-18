@@ -38,7 +38,7 @@ public
             @secret_code_row << temp_color
         end
     end
-#! DOES NOT WORK YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     def get_bot_input(turn)
         current_result_sum = get_current_results(turn)
         current_result_sum = current_result_sum[0]+current_result_sum[1]
@@ -112,12 +112,6 @@ public
         temp_input
     end
 
-    #*CREATE AN ARRAY OF POSSIBLE COLORS AND POSSIBLE CHOICES
-#* FOR FIRST TURN PICK TWO RANDOM COLORS
-#* CALCULATE THE RESULT SUM
-#* IF THE RESULT SUM IS GREATER THAN 3
-#* FILTER THE POSSIBLE CHOICES FOR OPTIONS THAT ONLY INCLUDE BOTH OF THESE COLORS
-        
     def reduce_possible_choices(turn)
         current_result_sum = get_current_results(turn)
         current_result_sum = current_result_sum[0]+current_result_sum[1]
