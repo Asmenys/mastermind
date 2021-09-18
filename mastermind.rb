@@ -273,14 +273,14 @@ while turn<=12
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
-        puts "WINNER WINNER CHICKEN DINNER"
+        puts "YOU WIN"
         break
     end
     if (turn == 12)
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
-        puts "DEFEAT DEFEAT LEMONS I EAT"
+        puts "YOU LOSE"
         break
     end
 end
