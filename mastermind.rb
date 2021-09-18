@@ -1,9 +1,7 @@
 require 'pry-byebug'
 
 class MASTERMIND
-    attr_reader :board, :secret_code_row, :MAIN_COLORS
-#creates the game board with some constants
-    def initialize(player_role = "code breaker")
+    def initialize(player_role)
         @MAIN_CHOICES = [1,2,3,4,5,6]
         @POSSIBLE_OPTIONS = Array.new(1) {@MAIN_CHOICES}.flatten
         @TRUE_OPTIONS = Array.new()
@@ -25,7 +23,7 @@ public
         temp_column1 = Array.new(4) {"O"}
         temp_column2 = Array.new(4) {"O"}
         @board = [] 
-        12.times do 
+        10.times do 
             @board << [temp_column1,temp_column2,"Turn:#{temp_index+=1}"]
         end
         @board
@@ -75,8 +73,9 @@ public
                     delta_result_sum = current_result_sum - previous_result_sum
                     temp_input = case_temp_input(turn, delta_result_sum)
                 end
-            when 6...12
+            when 6...10
                 #binding.pry
+                filter_whites(turn)
                 temp_input = @ALL_POSSIBLE_CHOICES.sample
                 @ALL_POSSIBLE_CHOICES.delete(temp_input)
         end
@@ -254,18 +253,35 @@ public
         display_board(turn)
     end
 end
+class PLAYER_CREATOR
+    attr_reader :player_role
+    def initialize
+        @possible_roles = ["code breaker","code maker"]
+        puts "Do you wish to be the code breaker or the code maker?"
+        player_role = gets.chomp
+        player_role = validate_role_choice(player_role)
+        @player_role = player_role
+    end
+    def validate_role_choice(player_role)
+        unless (@possible_roles.include?(player_role))
+            puts "Please choose a valid role"
+            player_role = gets.chomp
+            validate_role_choice(player_role)
+        end
+        player_role
+    end
+end
 
+player = PLAYER_CREATOR.new
 #binding.pry
-puts "Do you wish to be the code breaker or the code maker?"
-player_role = gets.chomp
-game = MASTERMIND.new(player_role)
+game = MASTERMIND.new(player.player_role)
 turn = 0
-while turn<=12
-    if player_role == "code breaker"
+while turn<=10
+    if player.player_role == "code breaker"
        # p game.secret_code_row
         game.player_turn(turn)
         turn += 1
-    elsif player_role == "code maker"
+    elsif player.player_role == "code maker"
         game.bot_turn(turn)
         turn+=1
     end
@@ -273,14 +289,22 @@ while turn<=12
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
-        puts "YOU WIN"
+        if player.player_role == "code breaker"
+            puts "YOU WIN"
+        else
+            puts "THE CODE BREAKER HAS WON"
+        end
         break
     end
-    if (turn == 12)
+    if (turn == 10)
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
-        puts "YOU LOSE"
+        if player.player_role == "code breaker"
+            puts "THE CODE MAKER HAS WON"
+        else
+            puts "You win!"
+        end
         break
     end
 end
