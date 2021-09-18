@@ -25,7 +25,7 @@ public
         temp_column1 = Array.new(4) {"O"}
         temp_column2 = Array.new(4) {"O"}
         @board = [] 
-        6.times do 
+        12.times do 
             @board << [temp_column1,temp_column2,"Turn:#{temp_index+=1}"]
         end
         @board
@@ -46,44 +46,70 @@ public
         current_result_sum = current_result_sum[0]+current_result_sum[1]
         previous_result_sum = get_current_results(turn-1)
         previous_result_sum = previous_result_sum[0]+previous_result_sum[1]
+        temp_turn = turn+1
         case turn
             when 0
-            temp_input = [1,1,1,1] 
+                temp_input = Array.new(4){temp_turn} 
+                @ALL_POSSIBLE_CHOICES.delete(temp_input)
             when 1
                 if current_result_sum == 0
                     reduce_possible_choices(turn)
-                    temp_input = [2,2,2,2]
+                    temp_input = Array.new(4){temp_turn}
+                    @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 else
                     current_result_sum.times do
                         @TRUE_OPTIONS << turn
                     end
                     @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| @TRUE_OPTIONS.count(turn) == guess.count(turn)}
                     temp_input=get_temp_input(turn)    
+                    @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 end
             when 2
                 if current_result_sum == 0
                     reduce_possible_choices(turn)
-                    temp_input = [3,3,3,3]
+                    temp_input = Array.new(4){temp_turn}
+                    @ALL_POSSIBLE_CHOICES.delete(temp_input)
                 else
-                    current_result_sum.times do
-                        @TRUE_OPTIONS << 2
-                    end
-                    @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| @TRUE_OPTIONS.count(2) == guess.count(2)}
-                    temp_input=get_temp_input(turn)
-                    binding.pry
+                    delta_result_sum = current_result_sum - previous_result_sum
+                    temp_input = case_temp_input(turn, delta_result_sum)
                 end
-            # when 3
-            #     @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| }
+            when 3
+                delta_result_sum = current_result_sum - previous_result_sum
+                temp_input = case_temp_input(turn, delta_result_sum)
+            when 4
+                delta_result_sum = current_result_sum - previous_result_sum
+                temp_input = case_temp_input(turn, delta_result_sum)
+            when 5
+                delta_result_sum = current_result_sum - previous_result_sum
+                temp_input = case_temp_input(turn, delta_result_sum)
+            when 6
+                delta_result_sum = current_result_sum - previous_result_sum
+                temp_input = case_temp_input(turn, delta_result_sum)
+            when 7...12
+                #binding.pry
+                temp_input = @ALL_POSSIBLE_CHOICES.sample
+                @ALL_POSSIBLE_CHOICES.delete(temp_input)
         end
         store_bot_input(temp_input)
     end
+    def case_temp_input(turn, delta_result_sum)
+        delta_result_sum.times do
+            @TRUE_OPTIONS << turn
+        end
+        @ALL_POSSIBLE_CHOICES = @ALL_POSSIBLE_CHOICES.filter {|guess| @TRUE_OPTIONS.count(turn) == guess.count(turn)}
+        temp_input=get_temp_input(turn)
+        @ALL_POSSIBLE_CHOICES.delete(temp_input)
+        temp_input
+    end
+
     def get_temp_input(turn)
+        #binding.pry
         temp_input = []
         temp_input << @TRUE_OPTIONS
         temp_input = temp_input.flatten
         temp_index = 4 - temp_input.length
         temp_index.times do
-            temp_input << turn
+            temp_input << turn+1
         end
         temp_input
     end
@@ -218,6 +244,7 @@ public
     end
 #DISPLAYS THE GAME BOARD
     def display_board(turn)
+      #  binding.pry
         temp_index = 0
         turn+=1
         turn.times do
@@ -248,9 +275,9 @@ puts "Do you wish to be the code breaker or the code maker?"
 player_role = gets.chomp
 game = MASTERMIND.new(player_role)
 turn = 0
-while turn<=6
+while turn<=12
     if player_role == "code breaker"
-        p game.secret_code_row
+       # p game.secret_code_row
         game.player_turn(turn)
         turn += 1
     elsif player_role == "code maker"
@@ -264,7 +291,7 @@ while turn<=6
         puts "WINNER WINNER CHICKEN DINNER"
         break
     end
-    if (turn == 6)
+    if (turn == 12)
         system "clear"
         temp_index = turn-1
         game.display_board(temp_index)
